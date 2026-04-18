@@ -15,9 +15,7 @@
 
         echo "тип \$celoe: " . gettype($celoe) . "<br>\n";
         echo "тип \$s_tchk: " . gettype($s_tchk) . "<br>\n";
-        echo "тип \$stroka: " . gettype($stroka) . "<br>\n";
-        echo "тип \$logich: " . gettype($logich) . "<br>\n";
-        echo "тип \$massive: " . gettype($massive) . "<br>\n";
+        echo "lol";
     ?>
     </body>
 </html>
