@@ -218,6 +218,5 @@
         $result = strrpos($str, 'b');
         echo "позиция последней буквы 'b': $result\n";
     ?>
-<h3>3-11 задание</h3>
     </body>
 </html>
