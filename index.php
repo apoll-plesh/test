@@ -1,11 +1,17 @@
 <?php
 require 'connection.php';
 require 'database.php';
+require 'csrf.php';
 
 $action = $_GET['action'] ?? 'list';
 $noteId = $_GET['id'] ?? 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    if (!verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+        die('Ошибка CSRF: недействительный токен');
+    }
+    
     if ($action === 'create') {
         createNote($pdo, $_SESSION['user_id'], $_POST['title'], $_POST['body']);
         header('Location: index.php');
@@ -86,11 +92,6 @@ if ($action === 'toggle_pin' && $noteId) {
             background: #da190b;
         }
         
-        .btn-warning {
-            background: #e0e0e0;
-            color: #333;
-        }
-        
         .form-card {
             background: white;
             padding: 20px;
@@ -163,14 +164,8 @@ if ($action === 'toggle_pin' && $noteId) {
             margin-top: 10px;
         }
         
-
-        
         .new-note-btn {
             margin-bottom: 20px;
-        }
-        
-        .back-link {
-            margin-top: 20px;
         }
         
         hr {
@@ -185,6 +180,7 @@ if ($action === 'toggle_pin' && $noteId) {
     <h1>Новая заметка</h1>
     <div class="form-card">
         <form method="POST">
+            <?= csrfField(); ?>
             <div class="form-group">
                 <label>Заголовок</label>
                 <input type="text" name="title" placeholder="Заголовок">
@@ -212,6 +208,7 @@ if ($action === 'toggle_pin' && $noteId) {
     <h1>Редактирование</h1>
     <div class="form-card">
         <form method="POST">
+            <?= csrfField(); ?>
             <div class="form-group">
                 <label>Заголовок</label>
                 <input type="text" name="title" value="<?= htmlspecialchars($note['title']) ?>">
@@ -259,9 +256,7 @@ if ($action === 'toggle_pin' && $noteId) {
                     <div class="note-actions">
                         <a href="index.php?action=edit&id=<?= $note['id'] ?>" class="btn">Редактировать</a>
                         <a href="index.php?action=delete&id=<?= $note['id'] ?>" class="btn btn-danger" onclick="return confirm('Удалить?')">Удалить</a>
-                        <a href="index.php?action=toggle_pin&id=<?= $note['id'] ?>" class="btn btn-warning">
-                            <?= $note['is_pinned'] ? 'Открепить' : 'Закрепить' ?>
-                        </a>
+                        <a href="index.php?action=toggle_pin&id=<?= $note['id'] ?>" class="btn"><?= $note['is_pinned'] ? 'Открепить' : 'Закрепить' ?></a>
                     </div>
                 </div>
             <?php endforeach; ?>

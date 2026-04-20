@@ -1,7 +1,11 @@
 <?php
 $pdo = new PDO('sqlite:'.__DIR__.'/database.sqlite');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-session_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $_SESSION['user_id'] = 1;
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS users (
