@@ -1,0 +1,14 @@
+[
+    {
+        "id":1,
+        "title":"клавиатура",
+        "price":3500,
+        "inStock":true
+    },
+    {
+        "id":2,
+        "title":"мышь",
+        "price":1500,
+        "inStock":true    
+    }
+]
