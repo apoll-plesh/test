@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css">
+        <link rel="manifest" href="manifest.webmanifest">
+        <meta name="theme-color" content="#000000">
+    </head>
+<body>
+    <div class="container">
+        <h1>✎ мои заметки</h1>
+        
+        <div class="input-section">
+            <textarea id="noteInput" placeholder="введите вашу заметку здесь..." rows="4"></textarea>
+            
+            <div class="buttons">
+                <button id="saveBtn" class="btn save">сохранить</button>
+                <button id="clearBtn" class="btn clear">очистить форму</button>
+            </div>
+        </div>
+
+        <div class="notes-section">
+            <h2>сохранённые заметки</h2>
+            <div id="notesList" class="notes-list">
+                <div class="empty-message">нет сохранённых заметок</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

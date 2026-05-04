@@ -1,0 +1,114 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f0f0f0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border: 1px solid #ccc;
+}
+
+h1 {
+    background: black;
+    color: white;
+    padding: 15px;
+    font-size: 1.5em;
+    margin: 0;
+}
+
+h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+.input-section, .notes-section {
+    padding: 15px;
+}
+
+.input-section {
+    border-bottom: 1px solid #ccc;
+}
+
+textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+button {
+    padding: 8px 15px;
+    border: 1px solid #999;
+    background: white;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #f0f0f0;
+}
+
+.save {
+    background: black;
+    color: white;
+    border-color: black;
+}
+
+.save:hover {
+    background: #333;
+}
+
+.clear {
+    background: white;
+}
+
+.note-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #fafafa;
+}
+
+.note-content {
+    font-family: monospace;
+    font-size: 14px;
+    white-space: pre-wrap;
+    margin-bottom: 8px;
+}
+
+.note-date {
+    font-size: 11px;
+    color: #666;
+    display: inline-block;
+}
+
+.delete-note {
+    float: right;
+    background: white;
+    border: 1px solid #999;
+    padding: 3px 8px;
+    font-size: 11px;
+}
+
+.empty-message {
+    color: #999;
+    text-align: center;
+    padding: 20px;
+}
