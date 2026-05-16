@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Выездной специалист</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1976d2">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📋 Заявки</h1>
+      <div class="status-bar">
+        <span id="onlineStatus">🔍 Проверка...</span>
+        <button id="syncBtn">🔄 Синхр (0)</button>
+      </div>
+    </header>
+
+    <div class="filters">
+      <select id="priorityFilter">
+        <option value="all">Все приоритеты</option>
+        <option value="высокий">Высокий</option>
+        <option value="средний">Средний</option>
+        <option value="низкий">Низкий</option>
+      </select>
+      <button id="addTicketBtn">➕ Новая заявка</button>
+      <button id="clearDraftBtn" class="draft-clear-btn" style="display:none">🗑️ Очистить черновик</button>
+    </div>
+
+    <div id="ticketsList" class="tickets-list"></div>
+  </div>
+
+  <div id="ticketModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalTitle">Новая заявка</h2>
+      <form id="ticketForm">
+        <input type="text" id="title" placeholder="Название" required>
+        <textarea id="description" placeholder="Описание" rows="4"></textarea>
+        <select id="priority">
+          <option value="высокий">Высокий</option>
+          <option value="средний" selected>Средний</option>
+          <option value="низкий">Низкий</option>
+        </select>
+        <button type="submit">Сохранить</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+</script>
+
+</body>
+</html>
