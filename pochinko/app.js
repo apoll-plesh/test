@@ -14,30 +14,13 @@ const onlineStatus = document.getElementById('onlineStatus');
 const syncBtn = document.getElementById('syncBtn');
 const clearDraftBtn = document.getElementById('clearDraftBtn');
 
-function updateStatusSimple() {
-    const isOnlineNow = navigator.onLine;
-    if (isOnlineNow !== isOnline) {
-      isOnline = isOnlineNow;
-      updateOnlineStatus();
-    }
-  }
-  
-  window.addEventListener('online', () => {
-    console.log('🔌 СЕТЬ ПОЯВИЛАСЬ (событие online)');
-    updateStatusSimple();
-    checkRealConnection(); 
-  });
-  
-  window.addEventListener('offline', () => {
-    console.log('🔌 СЕТЬ ПРОПАЛА (событие offline)');
-    updateStatusSimple();
-  });
-
+let isOnline = false; 
+let connectionCheckInterval = null;
 let deferredPrompt;
+
 const installBtn = document.createElement('button');
 installBtn.id = 'installBtn';
-installBtn.textContent = '📱 Установить приложение';
-installBtn.style.cssText = 'background: #4caf50; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer;';
+installBtn.textContent = '⬇ установить приложение';
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -58,19 +41,7 @@ installBtn.addEventListener('click', async () => {
 });
 
 function loadTickets() {
-  const saved = localStorage.getItem('tickets');
-  if (saved) {
-    tickets = JSON.parse(saved);
-  } else {
-    tickets = [{
-      id: Date.now(),
-      title: 'Настройка оборудования',
-      description: 'Проверить сервер',
-      priority: 'высокий',
-      createdAt: new Date().toISOString(),
-      synced: false
-    }];
-  }
+  tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
   renderTickets();
 }
 
@@ -84,22 +55,22 @@ function renderTickets() {
   );
   
   if (!filtered.length) {
-    ticketsList.innerHTML = '<div class="ticket-card">Нет заявок</div>';
+    ticketsList.innerHTML = '<div class="ticket-card">нет заявок</div>';
     return;
   }
   
   ticketsList.innerHTML = filtered.map(t => `
     <div class="ticket-card">
       <h3>${escapeHtml(t.title)}</h3>
-      <p>${escapeHtml(t.description || 'Нет описания')}</p>
+      <p>${escapeHtml(t.description || 'нет описания')}</p>
       <div class="ticket-meta">
-        <span class="priority-badge">${t.priority}</span>
+        <span class="priority-badge priority-${t.priority}">${t.priority}</span>
         <span class="date">${new Date(t.createdAt).toLocaleDateString()}</span>
-        ${!t.synced ? '<span class="unsynced-badge">⚠️ Не синхр.</span>' : ''}
+        ${!t.synced ? '<span class="unsynced-badge">⚠️ не синхронизирована</span>' : ''}
       </div>
       <div style="margin-top:10px">
-        <button onclick="editTicket(${t.id})">✏️</button>
-        <button onclick="deleteTicket(${t.id})">🗑️</button>
+        <button onclick="editTicket(${t.id})" class="edit-btn">✎</button>
+        <button onclick="deleteTicket(${t.id})" class="delete-btn">🗑️</button>
       </div>
     </div>
   `).join('');
@@ -114,7 +85,6 @@ function addTicket(title, description, priority) {
     createdAt: new Date().toISOString(),
     synced: false
   };
-  
   tickets.push(newTicket);
   saveTickets();
   saveUnsyncedTicket(newTicket);
@@ -125,7 +95,7 @@ function editTicket(id) {
   const t = tickets.find(t => t.id === id);
   if (t) {
     currentEditId = id;
-    modalTitle.textContent = 'Редактировать';
+    modalTitle.textContent = 'редактировать заявку';
     document.getElementById('title').value = t.title;
     document.getElementById('description').value = t.description;
     document.getElementById('priority').value = t.priority;
@@ -136,13 +106,7 @@ function editTicket(id) {
 function updateTicket(id, title, description, priority) {
   const idx = tickets.findIndex(t => t.id === id);
   if (idx !== -1) {
-    tickets[idx] = {
-      ...tickets[idx],
-      title,
-      description,
-      priority,
-      synced: false
-    };
+    tickets[idx] = { ...tickets[idx], title, description, priority, synced: false };
     saveTickets();
     saveUnsyncedTicket(tickets[idx]);
     renderTickets();
@@ -150,7 +114,7 @@ function updateTicket(id, title, description, priority) {
 }
 
 function deleteTicket(id) {
-  if (confirm('Удалить?')) {
+  if (confirm('удалить эту заявку?')) {
     const deleted = tickets.find(t => t.id === id);
     tickets = tickets.filter(t => t.id !== id);
     saveTickets();
@@ -161,6 +125,7 @@ function deleteTicket(id) {
 
 function saveUnsyncedTicket(ticket) {
   let unsynced = JSON.parse(localStorage.getItem(UNSYNCED_KEY) || '[]');
+  unsynced = unsynced.filter(t => t.id !== ticket.id);
   unsynced.push({ ...ticket, unsyncedAt: new Date().toISOString() });
   localStorage.setItem(UNSYNCED_KEY, JSON.stringify(unsynced));
   updateSyncButton();
@@ -178,32 +143,34 @@ function clearUnsyncedTickets() {
 function updateSyncButton() {
   const n = getUnsyncedTickets().length;
   if (syncBtn) {
-    syncBtn.textContent = n > 0 ? `🔄 Синхр (${n})` : `🔄 Синхр`;
+    syncBtn.textContent = n > 0 ? `↺ синхронизировать (${n})` : `синхронизировано`;
   }
 }
 
 async function syncWithServer() {
   const unsynced = getUnsyncedTickets();
   if (!unsynced.length) {
-    alert('Нет данных для синхронизации');
+    alert('нет данных для синхронизации');
     return;
   }
   
   if (!isOnline) {
-    alert('Нет соединения с интернетом');
+    alert('нет соединения с интернетом');
     return;
   }
   
   syncBtn.disabled = true;
-  syncBtn.textContent = '🔄 Синхр...';
+  syncBtn.textContent = '↺ синхронизация...';
   
-  try {
-    for (const t of unsynced) {
+  let successCount = 0;
+  let errorCount = 0;
+  
+  for (const t of unsynced) {
+    try {
       if (t._deleted) {
-        const response = await fetch(`/api/tickets/${t.id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error(`Ошибка удаления ${t.id}`);
+        await fetch(`/api/tickets/${t.id}`, { method: 'DELETE' });
       } else {
-        const response = await fetch('/api/tickets', {
+        await fetch('/api/tickets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -213,24 +180,28 @@ async function syncWithServer() {
             createdAt: t.createdAt
           })
         });
-        if (!response.ok) throw new Error(`Ошибка отправки ${t.id}`);
         
         const localTicket = tickets.find(lt => lt.id === t.id);
         if (localTicket) localTicket.synced = true;
       }
+      successCount++;
+    } catch (err) {
+      console.error(`Sync error for ${t.id}:`, err);
+      errorCount++;
     }
-    
+  }
+  
+  if (errorCount === 0) {
     clearUnsyncedTickets();
     saveTickets();
     renderTickets();
-    alert('✅ Синхронизация завершена');
-  } catch(e) {
-    console.error('Sync error:', e);
-    alert('❌ Ошибка синхронизации: ' + e.message);
-  } finally {
-    syncBtn.disabled = false;
-    updateSyncButton();
+    alert(`✅ синхронизация завершена! отправлено: ${successCount}`);
+  } else {
+    alert(`⚠️ синхронизация частично завершена. успешно: ${successCount}, ошибок: ${errorCount}`);
   }
+  
+  syncBtn.disabled = false;
+  updateSyncButton();
 }
 
 function saveDraft() {
@@ -265,80 +236,131 @@ function showDraftNotification() {
     const notif = document.createElement('div');
     notif.className = 'draft-notification';
     notif.innerHTML = `
-      <span>📝 Есть несохранённый черновик</span>
-      <button onclick="restoreDraft()">Восстановить</button>
-      <button onclick="clearDraftAndNotify()">Удалить</button>
+      <span>📝 есть несохранённый черновик</span>
+      <button onclick="restoreDraft()">восстановить</button>
+      <button onclick="clearDraftAndNotify()">удалить</button>
     `;
     document.body.appendChild(notif);
     setTimeout(() => notif.remove(), 15000);
   }
 }
 
-function restoreDraft() {
+window.restoreDraft = () => {
   loadDraft();
   document.querySelector('.draft-notification')?.remove();
   addTicketBtn.click();
-}
+};
 
-function clearDraftAndNotify() {
+window.clearDraftAndNotify = () => {
   clearDraft();
   document.querySelector('.draft-notification')?.remove();
-  alert('Черновик удалён');
-}
+  alert('черновик удалён');
+};
 
-let isOnline = false;
-
-function updateOnlineStatus() {
-  if (isOnline) {
-    onlineStatus.textContent = '🟢 Онлайн';
-    onlineStatus.className = 'online';
-    console.log('Статус: ОНЛАЙН');
-    const unsynced = getUnsyncedTickets();
-    if (unsynced.length > 0) syncWithServer();
-  } else {
-    onlineStatus.textContent = '🔴 Офлайн';
-    onlineStatus.className = 'offline';
-    console.log('Статус: ОФЛАЙН');
+async function checkRealConnection() {
+  if (!navigator.onLine) {
+    console.log('браузер говорит: офлайн');
+    isOnline = false;
+    updateOnlineStatus();
+    return;
+  }
+  
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    const response = await fetch('https://httpbin.org/get', {
+      method: 'GET',
+      cache: 'no-store',
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (response.ok) {
+      isOnline = true;
+      console.log('✅ интернет есть');
+    } else {
+      isOnline = false;
+      console.log('❌ ответ сервера не OK');
+    }
+    
+    updateOnlineStatus();
+    
+    if (isOnline && getUnsyncedTickets().length > 0) {
+      console.log('соединение восстановлено, запускаем синхронизацию...');
+      setTimeout(() => syncWithServer(), 1000);
+    }
+    
+  } catch (error) {
+    console.log('❌ ошибка соединения:', error.message);
+    isOnline = false;
+    updateOnlineStatus();
   }
 }
 
-async function checkRealConnection() {
-  try {
-    const response = await fetch('/api/check', {
-      method: 'GET',
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' }
-    });
-    const wasOnline = isOnline;
-    isOnline = response.ok;
-    if (wasOnline !== isOnline) updateOnlineStatus();
-  } catch (e) {
+function updateOnlineStatus() {
+  if (onlineStatus) {
     if (isOnline) {
-      isOnline = false;
-      updateOnlineStatus();
+      onlineStatus.textContent = '🟢 онлайн';
+      onlineStatus.className = 'online';
+      console.log('Статус обновлен: ОНЛАЙН');
+    } else {
+      onlineStatus.textContent = '🔴 офлайн';
+      onlineStatus.className = 'offline';
+      console.log('Статус обновлен: ОФЛАЙН');
     }
   }
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+}
+
 window.addEventListener('online', () => {
-  console.log('Браузер говорит: сеть появилась');
-  checkRealConnection();
+  console.log('Браузерное событие: сеть появилась');
+  setTimeout(checkRealConnection, 500);
 });
 
 window.addEventListener('offline', () => {
-  console.log('Браузер говорит: сеть пропала');
+  console.log('Браузерное событие: сеть пропала');
   isOnline = false;
   updateOnlineStatus();
 });
 
-setInterval(checkRealConnection, 5000);
-checkRealConnection();
+window.addEventListener('focus', () => {
+  console.log('Окно в фокусе, проверяем соединение');
+  checkRealConnection();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    console.log('Приложение активно, проверяем соединение');
+    checkRealConnection();
+  }
+});
+
+if ('connection' in navigator) {
+  navigator.connection.addEventListener('change', () => {
+    console.log('Изменение типа соединения:', navigator.connection.effectiveType);
+    checkRealConnection();
+  });
+}
+
+if (connectionCheckInterval) clearInterval(connectionCheckInterval);
+connectionCheckInterval = setInterval(checkRealConnection, 10000);
 
 ticketForm.onsubmit = (e) => {
   e.preventDefault();
   const title = document.getElementById('title').value;
   const desc = document.getElementById('description').value;
   const priority = document.getElementById('priority').value;
+  
+  if (!title.trim()) {
+    alert('пожалуйста, введите название заявки');
+    return;
+  }
   
   if (currentEditId) {
     updateTicket(currentEditId, title, desc, priority);
@@ -348,26 +370,29 @@ ticketForm.onsubmit = (e) => {
   
   modal.style.display = 'none';
   ticketForm.reset();
-  modalTitle.textContent = 'Новая заявка';
+  modalTitle.textContent = 'новая заявка';
   clearDraft();
 };
 
 addTicketBtn.onclick = () => {
   currentEditId = null;
-  modalTitle.textContent = 'Новая заявка';
+  modalTitle.textContent = 'новая заявка';
   loadDraft();
   modal.style.display = 'block';
 };
 
 clearDraftBtn?.addEventListener('click', () => {
-  clearDraft();
-  alert('Черновик очищен');
+  if (confirm('очистить черновик?')) {
+    clearDraft();
+    alert('черновик очищен');
+  }
 });
 
 closeBtn.onclick = () => {
   modal.style.display = 'none';
   ticketForm.reset();
   currentEditId = null;
+  clearDraft();
 };
 
 window.onclick = (e) => {
@@ -375,6 +400,7 @@ window.onclick = (e) => {
     modal.style.display = 'none';
     ticketForm.reset();
     currentEditId = null;
+    clearDraft();
   }
 };
 
@@ -382,21 +408,10 @@ priorityFilter.onchange = () => renderTickets();
 syncBtn?.addEventListener('click', syncWithServer);
 
 ['title', 'description', 'priority'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener('input', saveDraft);
+  document.getElementById(id)?.addEventListener('input', saveDraft);
 });
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    return {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;'
-    }[m];
-  });
-}
 
 updateSyncButton();
 showDraftNotification();
 loadTickets();
+checkRealConnection();
