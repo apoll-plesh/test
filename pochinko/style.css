@@ -1,188 +1,275 @@
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-body { 
-    font-family: system-ui, sans-serif; 
-    background: #f5f5f5; 
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f0f0f0;
+    padding: 20px;
 }
 
-.container { 
-    max-width: 800px; 
-    margin: 0 auto; 
-    padding: 20px; 
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border: 1px solid #ccc;
 }
 
-header { 
-    background: #1976d2; 
-    color: white; 
-    padding: 20px; 
-    border-radius: 12px; 
-    margin-bottom: 20px; 
+h1 {
+    background: black;
+    color: white;
+    padding: 15px;
+    font-size: 1.5em;
+    margin: 0;
 }
 
-h1 { 
-    margin-bottom: 10px; 
+.status-bar {
+    background: #f9f9f9;
+    padding: 10px 15px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-family: monospace;
 }
 
-.status-bar { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    font-size: 14px; 
+.online {
+    color: green;
+    font-weight: bold;
 }
 
-.online { 
-    background: #4caf50; 
-    padding: 4px 12px; 
-    border-radius: 20px; 
+.offline {
+    color: red;
+    font-weight: bold;
 }
 
-.offline { 
-    background: #f44336; 
-    padding: 4px 12px; 
-    border-radius: 20px; 
-}
-
-.filters { 
-    display: flex; 
-    gap: 10px; 
-    margin-bottom: 20px; 
-    flex-wrap: wrap; 
-}
-
-.filters select, 
-.filters button { 
+#syncBtn{
+    background: #c6c6c6; 
+    border: none; 
     padding: 8px 12px; 
-    border-radius: 8px; 
-    border: 1px solid #ddd; 
-    background: white; 
     cursor: pointer; 
+    margin-left: 10px;
 }
 
-#addTicketBtn { 
-    background: #4caf50; 
-    color: white; 
+#syncBtn:hover{
+    background: #a9a9a9; 
     border: none; 
+    padding: 8px 12px; 
+    cursor: pointer; 
+    margin-left: 10px;
 }
 
-.draft-clear-btn { 
-    background: #ff9800; 
-    color: white; 
+#installBtn{
+    background: #4fc249; 
+    color: white;
     border: none; 
-}
-
-.tickets-list { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 12px; 
-}
-
-.ticket-card { 
-    background: white; 
-    padding: 16px; 
-    border-radius: 12px; 
-    border-left: 4px solid #1976d2; 
-}
-
-.ticket-meta { 
-    display: flex; 
-    gap: 10px; 
-    margin-top: 8px; 
-    font-size: 12px; 
-    flex-wrap: wrap; 
-    align-items: center; 
-}
-
-.priority-badge { 
-    padding: 2px 8px; 
-    border-radius: 12px; 
-    background: #e0e0e0; 
-}
-
-.unsynced-badge { 
-    background: #ff9800; 
-    padding: 2px 8px; 
-    border-radius: 12px; 
-    color: white; 
-}
-
-.modal { 
-    display: none; 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    background: rgba(0,0,0,0.5); 
-}
-
-.modal-content { 
-    background: white; 
-    margin: 50px auto; 
-    padding: 20px; 
-    width: 90%; 
-    max-width: 500px; 
-    border-radius: 12px; 
-}
-
-.close { 
-    float: right; 
-    font-size: 28px; 
+    padding: 8px 12px; 
     cursor: pointer; 
+    margin-left: 10px;
 }
 
-.modal-content input, 
-.modal-content textarea, 
-.modal-content select { 
-    width: 100%; 
-    margin: 10px 0; 
-    padding: 8px; 
-}
-
-.modal-content button { 
-    width: 100%; 
-    padding: 10px; 
-    background: #1976d2; 
-    color: white; 
+#installBtn:hover{
+    background: #42a83c; 
+    color: white;
     border: none; 
-    border-radius: 6px; 
+    padding: 8px 12px; 
     cursor: pointer; 
+    margin-left: 10px;
 }
 
-.draft-notification { 
-    position: fixed; 
-    bottom: 20px; 
-    left: 20px; 
-    right: 20px; 
-    background: #ff9800; 
-    color: white; 
-    padding: 12px 20px; 
-    border-radius: 8px; 
-    display: flex; 
-    justify-content: space-between; 
-    z-index: 1001; 
+.filters {
+    padding: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #ccc;
+    background: #fafafa;
 }
 
-.draft-notification button { 
-    padding: 6px 12px; 
-    border-radius: 4px; 
-    border: none; 
-    cursor: pointer; 
+.filters select,
+.filters button {
+    padding: 6px 12px;
+    border: 1px solid #999;
+    background: white;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 13px;
 }
 
-.draft-notification button:first-child { 
-    background: #4caf50; 
-    color: white; 
+.filters button:hover {
+    background: #f0f0f0;
 }
 
-.draft-notification button:last-child { 
-    background: #f44336; 
-    color: white; 
+#addTicketBtn {
+    background: black;
+    color: white;
+    border-color: black;
 }
 
-button { 
-    cursor: pointer; 
+#addTicketBtn:hover {
+    background: #333;
+}
+
+.draft-clear-btn {
+    background: white;
+}
+
+.tickets-list {
+    padding: 15px;
+}
+
+.ticket-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #fafafa;
+}
+
+.ticket-card h3 {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+    font-family: monospace;
+}
+
+.ticket-card p {
+    font-family: monospace;
+    font-size: 14px;
+    white-space: pre-wrap;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.ticket-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    font-size: 11px;
+    font-family: monospace;
+}
+
+.priority-badge {
+    padding: 2px 8px;
+    background: rgb(150, 150, 150);
+    color: white;
+}
+
+.unsynced-badge {
+    background: #ffcc00;
+    padding: 2px 8px;
+    border: 1px solid #999;
+}
+
+.ticket-card button {
+    background: white;
+    border: 1px solid #999;
+    padding: 4px 10px;
+    margin-right: 5px;
+    font-family: monospace;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.ticket-card button:hover {
+    background: #f0f0f0;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    margin: 50px auto;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    border: 1px solid #ccc;
+    position: relative;
+}
+
+.close {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+    font-family: monospace;
+}
+
+.modal-content h2 {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+}
+
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+    width: 100%;
+    margin: 10px 0;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.modal-content button {
+    width: 100%;
+    padding: 8px;
+    background: black;
+    color: white;
+    border: 1px solid black;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.modal-content button:hover {
+    background: #333;
+}
+
+.draft-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: black;
+    color: white;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: monospace;
+    font-size: 13px;
+    z-index: 1001;
+}
+
+.draft-notification button {
+    background: white;
+    border: none;
+    padding: 5px 12px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-family: monospace;
+}
+
+.draft-notification button:first-child {
+    background: #4caf50;
+    color: white;
+}
+
+.draft-notification button:last-child {
+    background: #f44336;
+    color: white;
 }
