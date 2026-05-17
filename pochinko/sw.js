@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tickets-app-v3';
+const CACHE_NAME = 'tickets-app-v3'; 
 const urlsToCache = [
   '/',
   '/index.html',
@@ -28,22 +28,37 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   
-  if (url.pathname.startsWith('/api/') || !url.origin.includes(self.location.origin)) {
-    event.respondWith(fetch(event.request));
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(event.request).catch(error => {
+        console.log('API запрос не удался (офлайн режим):', url.pathname);
+        return new Response(JSON.stringify({ error: 'Offline', message: 'нет соединения с сервером' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
     return;
   }
   
   event.respondWith(
-    fetch(event.request)
+    caches.match(event.request)
       .then(response => {
-        if (response && response.status === 200) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
+        if (response) {
+          return response;
         }
-        return response;
+        return fetch(event.request).then(response => {
+          if (response && response.status === 200 && event.request.method === 'GET') {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        });
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => {
+        return caches.match('/');
+      })
   );
 });
